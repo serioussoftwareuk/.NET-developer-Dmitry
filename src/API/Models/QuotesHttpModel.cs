@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 
 namespace API.Models
 {
-    public class Model
+    public class QuotesHttpModel
     {
         [JsonProperty("Meta Data")]
         public MetaData MetaData { get; set; }

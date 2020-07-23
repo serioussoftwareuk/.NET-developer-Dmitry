@@ -24,6 +24,8 @@ namespace API
             services.AddScoped<IPerformanceService, PerformanceService>();
             services.AddScoped<IAlphaVantageHttpClient, AlphaVantageHttpClient>();
             services.AddScoped<IQuoteRepository, QuoteRepository>();
+            services.AddScoped<IQuoteService, QuoteService>();
+            services.AddScoped<IPerformanceCalculator, PerformanceCalculator>();
             
             services.AddControllers();
             
