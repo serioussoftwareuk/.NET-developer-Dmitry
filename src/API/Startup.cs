@@ -1,3 +1,5 @@
+using API.Repositories;
+using API.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -18,8 +20,14 @@ namespace API
         public void ConfigureServices(IServiceCollection services)
         {
             services.Configure<BaseConfiguration>(Configuration);
+
+            services.AddScoped<IPerformanceService, PerformanceService>();
+            services.AddScoped<IAlphaVantageHttpClient, AlphaVantageHttpClient>();
+            services.AddScoped<IQuoteRepository, QuoteRepository>();
             
             services.AddControllers();
+            
+            services.AddSwaggerGen();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -28,6 +36,13 @@ namespace API
             {
                 app.UseDeveloperExceptionPage();
             }
+            
+            app.UseSwagger();
+
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Performance calculator");
+            });
 
             app.UseHttpsRedirection();
 

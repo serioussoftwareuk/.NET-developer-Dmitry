@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace API.Models
@@ -46,6 +47,19 @@ namespace API.Models
 
         [JsonProperty("5. volume")]
         public decimal Volume { get; set; }
+
+        public QuoteDTO ToDto(string symbol, QuoteType type, DateTime date) =>
+            new QuoteDTO
+            {
+                Date = date,
+                Open = Open,
+                High = High,
+                Low = Low,
+                Close = Close,
+                Volume = Volume,
+                Symbol = symbol,
+                Type = type
+            };
     }
 
 }

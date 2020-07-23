@@ -12,19 +12,19 @@
 *.userprefs
 
 # Build results
-[Dd]ebug/
-[Dd]ebugPublic/
-[Rr]elease/
-[Rr]eleases/
-x64/
-x86/
-bld/
-[Bb]in/
-[Oo]bj/
-[Ll]og/
+**/[Dd]ebug/
+**/[Dd]ebugPublic/
+**/[Rr]elease/
+**/[Rr]eleases/
+**/x64/
+**/x86/
+**/bld/
+**/[Bb]in/
+**/[Oo]bj/
+**/[Ll]og/
 
 # Visual Studio 2015 cache/options directory
-.vs/
+**/.vs/
 # Uncomment if you have tasks that create the project's static files in wwwroot
 #wwwroot/
 
@@ -37,9 +37,9 @@ bld/
 TestResult.xml
 
 # Build Results of an ATL Project
-[Dd]ebugPS/
-[Rr]eleasePS/
-dlldata.c
+**/[Dd]ebugPS/
+**/[Rr]eleasePS/
+**/dlldata.c
 
 # DNX
 project.lock.json
@@ -251,8 +251,8 @@ paket-files/
 .fake/
 
 # JetBrains Rider
-.idea/
-*.sln.iml
+**/.idea/
+**/*.sln.iml
 
 # CodeRush
 .cr/
@@ -260,28 +260,3 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
-
-
-# My
-*.bak
-log*.txt
-/.vs/MyExchange/v15
-/OrderMatcher/Properties/PublishProfiles
-/OrderMatcher/OrderMatcher.csproj.user
-_Resharper.Caches
-
-ThirdParty/postgresql.jar
-ThirdParty/liquibase
-/DevEnvTest.yml
-
-#flant
-*.swp
-.dappfile.render*
-.dapp_secret_key
-.werf_secret_key
-.werf.render.yaml
-# Remainings from resolving conflicts in Source Control
-*.orig
-
-# Zilliqa files from SIMNET used in Component Tests
-**/Zil/local_run/*

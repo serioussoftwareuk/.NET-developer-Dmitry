@@ -30,7 +30,7 @@ namespace API.Repositories
             var sql = $"SELECT * FROM quotes " +
                       $"WHERE symbol = '{symbol}' " +
                       $"AND date > '{DateTime.Now.AddDays(-days):MM/dd/yyyy}' " +
-                      $"AND type = {type} " +
+                      $"AND type = {type:d} " +
                       $"ORDER BY date DESC";
 
             await using var conn = new NpgsqlConnection(_config.ConnectionString);
@@ -45,7 +45,7 @@ namespace API.Repositories
             if(quotes?.Count == 0) return;
             
             var values = string.Join(",", quotes.Select(x => $"('{x.Date:MM/dd/yyyy}', " +
-                                                             $"{x.Type}, " +
+                                                             $"{x.Type:d}, " +
                                                              $"'{x.Symbol}', " +
                                                              $"{x.Open.ToString(CultureInfo.InvariantCulture)}, " +
                                                              $"{x.Close.ToString(CultureInfo.InvariantCulture)}, " +
@@ -53,7 +53,13 @@ namespace API.Repositories
                                                              $"{x.Low.ToString(CultureInfo.InvariantCulture)}, " +
                                                              $"{x.Volume.ToString(CultureInfo.InvariantCulture)})"));
             
-            var sql = $"INSERT INTO quotes (date, type, symbol, open, close, high, low, volume) values {values}";
+            var sql = $"INSERT INTO quotes (date, type, symbol, open, close, high, low, volume) values {values}" +
+                      $"ON CONFLICT (date, symbol, type) DO UPDATE SET " +
+                      $"open = EXCLUDED.open," +
+                      $"close = EXCLUDED.close," +
+                      $"high = EXCLUDED.high," +
+                      $"low = EXCLUDED.low," +
+                      $"volume = EXCLUDED.volume";
 
             await using var conn = new NpgsqlConnection(_config.ConnectionString);
             

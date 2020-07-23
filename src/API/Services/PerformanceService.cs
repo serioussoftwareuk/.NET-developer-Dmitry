@@ -10,7 +10,7 @@ namespace API.Services
 {
     public interface IPerformanceService
     {
-        Task<object> CalculateAsync(string symbol);
+        Task<CalculationResult> CalculateAsync(string symbol);
     }
     
     public class PerformanceService : IPerformanceService
@@ -29,27 +29,28 @@ namespace API.Services
             _config = config?.Value;
         }
         
-        public async Task<object> CalculateAsync(string symbol)
+        public async Task<CalculationResult> CalculateAsync(string symbol)
         {
             var calculateBaseTask = CalculateAsync(symbol, QuoteType.Base);
             var calculateSPTask = CalculateAsync(_config.SP, QuoteType.SP);
 
             await Task.WhenAll(calculateBaseTask, calculateSPTask);
 
-            return new
+            return new CalculationResult
             {
                 Base = await calculateBaseTask,
                 SP = await calculateSPTask
             };
         }
 
-        private async Task<List<object>> CalculateAsync(string symbol, QuoteType type)
+        private async Task<CalculationModel> CalculateAsync(string symbol, QuoteType type)
         {
             var dbQuotes = await _quoteRepository.GetQuotes(symbol, type);
 
             if (!ValidateDbQuotes(dbQuotes))
             {
-                dbQuotes = await FetchQuotes(symbol);
+                dbQuotes = await FetchQuotes(symbol, type);
+                await _quoteRepository.InsertQuotes(dbQuotes);
             }
 
             var orderedQuotes = dbQuotes
@@ -58,29 +59,24 @@ namespace API.Services
                 .OrderBy(x => x.Date)
                 .ToList();
             
-            var result = new List<object>();
+            var result = new CalculationModel(symbol);
             decimal based = 0;
             for (int i = 0; i < orderedQuotes.Count; i++)
             {
                 if (i == 0)
                 {
-                    result.Add(new
-                    {
-                        orderedQuotes[0].Date,
-                        Value = 0
-                    });
+                    result.Items.Add(new CalculationItem(orderedQuotes[0].Date, 0));
 
                     based = orderedQuotes[0].Close;
                     
                     continue;
                 }
                 
-                result.Add(new
-                {
-                    orderedQuotes[i].Date,
-                    Value = based / (orderedQuotes[i].Close - based)
-                });
+                result.Items.Add(new CalculationItem(orderedQuotes[i].Date, (orderedQuotes[i].Close - based) / based * 100));
+
             }
+
+            return result;
         }
 
         private bool ValidateDbQuotes(List<QuoteDTO> quotes)
@@ -91,8 +87,10 @@ namespace API.Services
             int day = 0;
             foreach (var quote in quotes.OrderByDescending(x => x.Date))
             {
-                if (quote.Date != DateTime.Now.AddDays(-day++).Date)
+                if (quote.Date != DateTime.Now.AddDays(-day).Date)
                     return false;
+
+                day++;
 
                 if (day == 7)
                     return true;
@@ -101,9 +99,13 @@ namespace API.Services
             return true;
         }
 
-        private async Task<Quote> FetchQuotes(string symbol)
+        private async Task<List<QuoteDTO>> FetchQuotes(string symbol, QuoteType type)
         {
             var quotes = await _alphaVantageHttpClient.GetDailyQuotes(symbol);
+            
+            return quotes.TimeSeries
+                .Select(x => x.Value.ToDto(symbol, type, DateTime.Parse(x.Key)))
+                .ToList();
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using API.Models;
 using API.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,7 +17,7 @@ namespace API.Controllers
         }
         
         [HttpGet("calculate/{symbol}")]
-        public Task<object> CalculatePerformanceAsync(string symbol)
+        public Task<CalculationResult> CalculatePerformanceAsync(string symbol)
         {
             return _service.CalculateAsync(symbol);
         }
