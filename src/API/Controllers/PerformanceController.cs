@@ -16,10 +16,10 @@ namespace API.Controllers
             _service = service;
         }
         
-        [HttpGet("calculate/{symbol}")]
-        public Task<CalculationResult> CalculatePerformanceAsync(string symbol)
+        [HttpGet("calculate")]
+        public Task<CalculationResult> CalculatePerformanceAsync([FromQuery]string[] symbols)
         {
-            return _service.CalculateAsync(symbol);
+            return _service.CalculateAsync(symbols);
         }
     }
 }

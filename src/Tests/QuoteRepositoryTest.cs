@@ -29,7 +29,7 @@ namespace Tests
                 }
             });
 
-            var result = await repo.GetQuotes("TEST", QuoteType.Base);
+            var result = await repo.GetLastWeekQuotes("TEST", QuoteType.Base);
             
             Assert.True(result.Count >= 1);
         }
@@ -53,7 +53,7 @@ namespace Tests
                 }
             });
 
-            var result = await repo.GetQuotes("TESTW", QuoteType.Base);
+            var result = await repo.GetLastWeekQuotes("TESTW", QuoteType.Base);
             
             Assert.True(result.Count == 0);
         }

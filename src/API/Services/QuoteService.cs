@@ -9,7 +9,7 @@ namespace API.Services
 {
     public interface IQuoteService
     {
-        Task<List<QuoteDTO>> GetWeeklyQuotesAsync(string symbol, QuoteType type);
+        Task<List<QuoteDTO>> GetWeeklyHourQuotesAsync(string symbol, QuoteType type);
     }
     
     public class QuoteService : IQuoteService
@@ -23,9 +23,9 @@ namespace API.Services
             _quoteRepository = quoteRepository;
         }
         
-        public async Task<List<QuoteDTO>> GetWeeklyQuotesAsync(string symbol, QuoteType type)
+        public async Task<List<QuoteDTO>> GetWeeklyHourQuotesAsync(string symbol, QuoteType type)
         {
-            var quotes = await _quoteRepository.GetQuotes(symbol, type);
+            var quotes = await _quoteRepository.GetLastWeekQuotes(symbol, type);
 
             if (!ValidateDbQuotes(quotes))
             {
@@ -38,29 +38,64 @@ namespace API.Services
 
         private bool ValidateDbQuotes(List<QuoteDTO> quotes)
         {
-            if (quotes.Count < 7)
-                return false;
+            var latestQuote = quotes
+                .OrderByDescending(x => x.Date)
+                .FirstOrDefault();
             
-            int day = 0;
-            foreach (var quote in quotes.OrderByDescending(x => x.Date))
-            {
-                if (quote.Date != DateTime.Now.AddDays(-day).Date)
-                    return false;
+            if(latestQuote != null)
+                return DateTime.Now - latestQuote.Date < TimeSpan.FromHours(2);
 
-                if (++day == 7)
-                    return true;
-            }
-            
-            return true;
+            return false;
         }
         
         private async Task<List<QuoteDTO>> FetchQuotes(string symbol, QuoteType type)
         {
-            var quotes = await _alphaVantageHttpClient.GetDailyQuotes(symbol);
+            var apiQuotes = await _alphaVantageHttpClient.GetHourlyQuotes(symbol);
             
-            return quotes.TimeSeries
-                .Select(x => x.Value.ToDto(symbol, type, DateTime.Parse(x.Key)))
+            if(apiQuotes?.TimeSeries == null)
+                return null;
+            
+            return MergeQuotes(apiQuotes, symbol, type);
+        }
+
+        private List<QuoteDTO> MergeQuotes(QuotesHttpModel apiQuotes, string symbol, QuoteType type)
+        {
+            var quotes = apiQuotes.TimeSeries
+                .Select(x => x.Value.ToDto(symbol, type, DateTime.Parse($"{x.Key} -5").ToUniversalTime()))
+                .Where(x => x.Date >= DateTime.UtcNow.AddDays(-7))
                 .ToList();
+
+            var result = new List<QuoteDTO>();
+            int i;
+            for (i = 1; i < quotes.Count; i += 2)
+            {
+                if (quotes[i - 1].Date.Date == quotes[i].Date.Date)
+                {
+                    result.Add(new QuoteDTO
+                    {
+                        Symbol = quotes[i].Symbol,
+                        Date = quotes[i].Date,
+                        Type = type,
+                        Open = quotes[i - 1].Open,
+                        Close = quotes[i].Close,
+                        High = Math.Max(quotes[i].High, quotes[i - 1].High),
+                        Low = Math.Min(quotes[i].Low, quotes[i - 1].Low),
+                        Volume = quotes[i - 1].Volume + quotes[i].Volume
+                    });
+                }
+                else
+                {
+                    result.Add(quotes[i - 1]);
+                    i--;
+                }
+            }
+
+            if (i == quotes.Count && i > 0)
+            {
+                result.Add(quotes[i - 1]);
+            }
+
+            return result;
         }
     }
 }

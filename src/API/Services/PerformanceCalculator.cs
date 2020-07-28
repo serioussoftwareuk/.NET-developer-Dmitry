@@ -20,8 +20,6 @@ namespace API.Services
                 throw new ArgumentException("Symbol can not be null.");
             
             var orderedQuotes = quotes
-                .OrderByDescending(x => x.Date)
-                .Take(7)
                 .OrderBy(x => x.Date)
                 .ToList();
             

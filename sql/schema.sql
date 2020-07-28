@@ -1,5 +1,5 @@
 CREATE TABLE if not exists quotes (
-    "date" date NOT NULL,
+    "date" TIMESTAMP NOT NULL,
     symbol varchar(10) NOT NULL,
     "type" integer NOT NULL,
     "open" numeric,

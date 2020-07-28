@@ -9,6 +9,7 @@ namespace API.Services
     public interface IAlphaVantageHttpClient
     {
         Task<QuotesHttpModel> GetDailyQuotes(string symbol);
+        Task<QuotesHttpModel> GetHourlyQuotes(string market);
     }
     
     public class AlphaVantageHttpClient : IAlphaVantageHttpClient
@@ -26,6 +27,16 @@ namespace API.Services
         {
             var response = await _client
                 .GetAsync($"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={market}&apikey={_config.ApiKey}");
+
+            response.EnsureSuccessStatusCode();
+
+            return JsonConvert.DeserializeObject<QuotesHttpModel>(await response.Content.ReadAsStringAsync());
+        }
+        
+        public async Task<QuotesHttpModel> GetHourlyQuotes(string market)
+        {
+            var response = await _client
+                .GetAsync($"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={market}&apikey={_config.ApiKey}&interval=60min");
 
             response.EnsureSuccessStatusCode();
 

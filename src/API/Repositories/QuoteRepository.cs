@@ -12,7 +12,7 @@ namespace API.Repositories
 {
     public interface IQuoteRepository
     {
-        Task<List<QuoteDTO>> GetQuotes(string symbol, QuoteType type, int days = 7);
+        Task<List<QuoteDTO>> GetLastWeekQuotes(string symbol, QuoteType type, int days = 7);
         Task InsertQuotes(List<QuoteDTO> quotes);
     }
     
@@ -25,11 +25,11 @@ namespace API.Repositories
             _config = config?.Value;
         }
         
-        public async Task<List<QuoteDTO>> GetQuotes(string symbol, QuoteType type, int days = 7)
+        public async Task<List<QuoteDTO>> GetLastWeekQuotes(string symbol, QuoteType type, int days = 7)
         {
             var sql = $"SELECT * FROM quotes " +
                       $"WHERE symbol = '{symbol}' " +
-                      $"AND date > '{DateTime.Now.AddDays(-days):MM/dd/yyyy}' " +
+                      $"AND date > '{DateTime.Now.AddDays(-days):MM-dd-yyyy HH:mm:ss}' " +
                       $"AND type = {type:d} " +
                       $"ORDER BY date DESC";
 
@@ -42,9 +42,9 @@ namespace API.Repositories
 
         public async Task InsertQuotes(List<QuoteDTO> quotes)
         {
-            if(quotes?.Count == 0) return;
+            if (quotes == null || quotes.Count == 0) return;
             
-            var values = string.Join(",", quotes.Select(x => $"('{x.Date:MM/dd/yyyy}', " +
+            var values = string.Join(",", quotes.Select(x => $"('{x.Date:MM-dd-yyyy HH:mm:ss}', " +
                                                              $"{x.Type:d}, " +
                                                              $"'{x.Symbol}', " +
                                                              $"{x.Open.ToString(CultureInfo.InvariantCulture)}, " +

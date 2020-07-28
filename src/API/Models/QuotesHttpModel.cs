@@ -9,7 +9,7 @@ namespace API.Models
         [JsonProperty("Meta Data")]
         public MetaData MetaData { get; set; }
         
-        [JsonProperty("Time Series (Daily)")]
+        [JsonProperty("Time Series (60min)")]
         public Dictionary<string, Quote> TimeSeries { get; set; }
     }
 
